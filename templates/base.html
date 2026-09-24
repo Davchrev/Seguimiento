@@ -1,0 +1,27 @@
+{% load static %}<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Seguimiento ATM{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'app.css' %}">
+</head>
+<body>
+  <a class="skip" href="#contenido">Saltar al contenido</a>
+  <header class="topbar">
+    <a class="brand" href="{% url 'dashboard' %}"><span class="brand-icon">a<span>+</span></span><span>ATM<span class="brand-light"> / seguimiento</span></span></a>
+    {% if user.is_authenticated %}
+    <nav aria-label="Principal">
+      <a class="nav-link" href="{% url 'dashboard' %}">Mis mantenimientos</a>
+      {% if user.is_superuser %}<a class="nav-link" href="{% url 'admin:index' %}">Administración ↗</a>{% endif %}
+      <span class="identity"><span class="avatar">{{ user.username|first|upper }}</span>{{ user.get_short_name|default:user.username|capfirst }}</span>
+      <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="logout" type="submit">Salir</button></form>
+    </nav>
+    {% else %}<span class="header-note">Mantenimiento preventivo</span>{% endif %}
+  </header>
+  <main id="contenido" class="{% block main_class %}container{% endblock %}">
+    {% if messages %}<div class="messages" aria-live="polite">{% for message in messages %}<div class="notice {{ message.tags }}">{{ message }}</div>{% endfor %}</div>{% endif %}
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="footer"><span>Seguimiento de mantenimiento preventivo</span><span>Hora de Perú · UTC−5</span></footer>
+</body>
+</html>

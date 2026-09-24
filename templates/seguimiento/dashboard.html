@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="page-heading">
+  <div><div class="eyebrow">MANTENIMIENTO PREVENTIVO</div><h1>{% if user.is_superuser %}Vista general{% else %}Mis ATM{% endif %}<span class="heading-dot">.</span></h1><p class="muted">Cada visita cuenta. Lleva el seguimiento de tus equipos este mes.</p></div>
+  <div class="period-label"><span class="mini-icon">▦</span><div><small>PERÍODO DE TRABAJO</small><strong>{{ month|date:'F Y'|capfirst }}</strong></div></div>
+</div>
+<section class="stats" aria-label="Resumen del mes">
+  <div class="stat"><span>ATM asignados</span><strong>{{ total|stringformat:'02d' }}</strong><small>En el período seleccionado</small></div>
+  <div class="stat"><span><i class="dot gray"></i>Pendientes</span><strong>{{ pending|stringformat:'02d' }}</strong><small>Sin atenciones registradas</small></div>
+  <div class="stat"><span><i class="dot orange"></i>En curso</span><strong>{{ active|stringformat:'02d' }}</strong><small>Con atenciones, sin cierre</small></div>
+  <div class="stat completed"><span><i class="dot green"></i>Cerrados</span><strong>{{ closed|stringformat:'02d' }}<em>{{ progress }}%</em></strong><progress value="{{ closed }}" max="{{ total|default:1 }}" aria-label="Progreso de cierres"></progress></div>
+</section>
+<section class="workspace">
+  <div class="section-heading"><h2>{% if user.is_superuser %}Todos los equipos{% else %}Tus equipos{% endif %}</h2><span class="muted">{{ items|length }} resultado{{ items|length|pluralize:'s' }}</span></div>
+  <form class="filters" method="get">
+    <div class="field search"><label for="search">Buscar ATM</label><input id="search" type="search" name="q" value="{{ search }}" placeholder="Buscar por número de ATM…" maxlength="40"></div>
+    <div class="field"><label for="month">Mes</label><input id="month" type="month" name="mes" value="{{ month|date:'Y-m' }}" required></div>
+    <div class="field"><label for="state">Estado</label><select id="state" name="estado"><option value="">Todos los estados</option><option value="pendiente" {% if state == 'pendiente' %}selected{% endif %}>Pendiente</option><option value="curso" {% if state == 'curso' %}selected{% endif %}>En curso</option><option value="cerrado" {% if state == 'cerrado' %}selected{% endif %}>Cerrado</option></select></div>
+    <button class="button secondary" type="submit">Filtrar</button>
+    {% if search or state %}<a class="clear-filter" href="?mes={{ month|date:'Y-m' }}">Limpiar</a>{% endif %}
+  </form>
+  <div class="cards">
+    {% for item in items %}
+    <a class="atm-card" href="{% url 'detail' item.pk %}">
+      <div class="card-top"><span class="atm-icon" aria-hidden="true">▤</span>{% if item.cierre %}<span class="badge closed">Cerrado</span>{% elif item.total_atenciones %}<span class="badge ongoing">En curso</span>{% else %}<span class="badge pending">Pendiente</span>{% endif %}</div>
+      <small class="card-label">CAJERO AUTOMÁTICO</small><h3>ATM {{ item.atm_numero }}</h3>
+      <div class="card-owner"><span class="small-avatar">{{ item.responsable.codigo|first }}</span>{{ item.responsable }}</div>
+      <div class="card-bottom"><span>{{ item.total_atenciones }} atenci{{ item.total_atenciones|pluralize:'ón,ones' }}</span><span>{% if item.cierre %}Ver historial{% else %}Ver mantenimiento{% endif %} <b>↗</b></span></div>
+    </a>
+    {% empty %}
+    <div class="empty"><span class="empty-icon">▦</span><h3>{% if search or state %}No hay equipos con estos filtros{% else %}Todo listo para empezar{% endif %}</h3><p>{% if search or state %}Prueba con otro número de ATM o estado.{% else %}Aún no hay ATM asignados para {{ month|date:'F Y' }}.<br>Las asignaciones aparecerán después de la carga en la base de datos.{% endif %}</p>{% if user.is_superuser %}<a class="button secondary" href="{% url 'admin:seguimiento_mantenimiento_add' %}">Agregar asignación</a>{% endif %}</div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

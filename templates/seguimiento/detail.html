@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}ATM {{ item.atm_numero }} · Seguimiento{% endblock %}
+{% block content %}
+<a class="back" href="{% url 'dashboard' %}?mes={{ item.periodo|date:'Y-m' }}">← Volver a los equipos</a>
+<div class="page-heading detail-heading"><div><div class="eyebrow">{{ item.periodo|date:'F Y'|upper }} / MANTENIMIENTO PREVENTIVO</div><h1>ATM {{ item.atm_numero }}<span class="heading-dot">.</span></h1><p class="muted">Responsable: <strong>{{ item.responsable }}</strong> <span class="separator">/</span> {{ events|length }} atenci{{ events|length|pluralize:'ón,ones' }}</p></div>{% if item.cierre %}<span class="badge closed">✓ Mantenimiento cerrado</span>{% elif events %}<span class="badge ongoing">En curso</span>{% else %}<span class="badge pending">Pendiente de atención</span>{% endif %}</div>
+<div class="detail-grid">
+  <section class="panel history"><div class="section-heading"><h2>Historial de atenciones</h2><span class="count">{{ events|length }}</span></div><p class="muted panel-subtitle">El recorrido de este mantenimiento, paso a paso.</p>
+    <ol class="timeline">
+      {% for event in events %}<li><span class="timeline-dot"></span><div class="event-heading"><strong>Atención {{ forloop.counter }}</strong><time datetime="{{ event.fecha_hora|date:'c' }}">{{ event.fecha_hora|date:'d M Y · H:i' }}</time></div><p class="observation">{{ event.observacion }}</p><small class="muted">Registrada por {{ event.registrado_por.get_short_name|default:event.registrado_por.username|capfirst }}</small></li>{% empty %}<li class="timeline-empty"><span class="timeline-dot"></span><strong>Aún no hay atenciones</strong><p class="muted">Registra la primera visita para iniciar el seguimiento.</p></li>{% endfor %}
+      {% if item.cierre %}<li class="closure-event"><span class="timeline-dot"></span><div class="event-heading"><strong>✓ Mantenimiento cerrado</strong><time datetime="{{ item.cierre|date:'c' }}">{{ item.cierre|date:'d M Y · H:i' }}</time></div>{% if item.observacion_cierre %}<p class="observation">{{ item.observacion_cierre }}</p>{% endif %}<small>Cerrado por {{ item.cerrado_por.get_short_name|default:item.cerrado_por.username|capfirst }}</small></li>{% endif %}
+    </ol>
+  </section>
+  <aside class="actions">
+    {% if not item.cierre %}
+    <section class="panel"><div class="form-heading"><span class="form-icon">+</span><div><h2>Nueva atención</h2><p class="muted">Registra el trabajo realizado en el ATM.</p></div></div>
+      <form method="post" class="stack">{% csrf_token %}<input type="hidden" name="accion" value="atencion">{{ attention_form.solicitud }}{{ attention_form.non_field_errors }}
+        {% for field in attention_form.visible_fields %}<div class="field">{{ field.label_tag }}{{ field }}{{ field.errors }}</div>{% endfor %}
+        {% if attention_form.solicitud.errors %}<p class="errorlist">Recarga la página e intenta nuevamente.</p>{% endif %}
+        <button type="submit" class="button primary full">Guardar atención <span>→</span></button>
+      </form>
+    </section>
+    <section class="panel close-panel"><h2>Cierre del mantenimiento</h2><p class="muted">Al cerrar, el historial quedará disponible para consulta y no se podrán agregar más atenciones.</p>
+      {% if events or close_form.is_bound %}<details {% if close_form.is_bound %}open{% endif %}><summary>Registrar cierre final <span>↓</span></summary><form method="post" class="stack">{% csrf_token %}<input type="hidden" name="accion" value="cierre">{{ close_form.solicitud }}{{ close_form.non_field_errors }}
+        {% for field in close_form.visible_fields %}<div class="field">{{ field.label_tag }}{{ field }}{{ field.errors }}</div>{% endfor %}
+        {% if close_form.solicitud.errors %}<p class="errorlist">Recarga la página e intenta nuevamente.</p>{% endif %}
+        <button type="submit" class="button dark full">Confirmar cierre definitivo <span>✓</span></button>
+      </form></details>{% else %}<div class="hint">Registra primero una atención para habilitar el cierre.</div>{% endif %}
+    </section>
+    {% else %}<section class="panel closed-panel"><span class="closed-symbol">✓</span><h2>Trabajo completado</h2><p>Este mantenimiento se cerró el <strong>{{ item.cierre|date:'d/m/Y' }}</strong> a las <strong>{{ item.cierre|date:'H:i' }}</strong>.</p><p class="muted">Las atenciones de este mes se conservarán en el historial.</p><a class="button secondary full" href="{% url 'dashboard' %}?mes={{ item.periodo|date:'Y-m' }}">Volver a mis equipos</a></section>{% endif %}
+    <p class="timezone-note">Todas las fechas y horas corresponden a Perú.</p>
+  </aside>
+</div>
+{% endblock %}

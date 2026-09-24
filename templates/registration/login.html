@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Ingresar · Seguimiento ATM{% endblock %}
+{% block main_class %}login-layout{% endblock %}
+{% block content %}
+<section class="login-story">
+  <div class="eyebrow">OPERACIONES / ATM</div>
+  <h1>Cada atención,<br>en su lugar.</h1>
+  <p>Tu mantenimiento preventivo, desde la primera visita hasta el cierre.</p>
+  <div class="login-illustration" aria-hidden="true">
+    <div class="illustration-top"><span class="mini-icon">▦</span><span>Mantenimiento mensual</span><span class="live-dot"></span></div>
+    <div class="illustration-line"><span class="step done">✓</span><div><strong>ATM asignado</strong><small>Un espacio para cada equipo</small></div></div>
+    <div class="illustration-line"><span class="step done">✓</span><div><strong>Atenciones registradas</strong><small>Fecha, hora y observaciones</small></div></div>
+    <div class="illustration-line"><span class="step">3</span><div><strong>Cierre de mantenimiento</strong><small>Historial completo, mes a mes</small></div></div>
+  </div>
+  <span class="story-bottom">ORGANIZA · ATIENDE · CIERRA</span>
+</section>
+<section class="login-panel">
+  <div class="eyebrow">BIENVENIDA A TU ESPACIO</div>
+  <h2>Inicia sesión</h2>
+  <p class="muted">Ingresa con la cuenta que te asignó el administrador.</p>
+  <form method="post" class="stack">
+    {% csrf_token %}
+    {% if form.errors %}<div class="notice error" role="alert">No pudimos iniciar sesión. Revisa tu usuario y contraseña.</div>{% endif %}
+    <div class="field"><label for="id_username">Usuario</label><input id="id_username" name="username" value="{{ form.username.value|default:'' }}" required autocomplete="username" autofocus placeholder="Tu usuario"></div>
+    <div class="field"><label for="id_password">Contraseña</label><input id="id_password" name="password" type="password" required autocomplete="current-password" placeholder="Tu contraseña"></div>
+    <input type="hidden" name="next" value="{{ next }}">
+    <button class="button primary full" type="submit">Ingresar <span>→</span></button>
+  </form>
+  <p class="login-help">¿Necesitas acceso? Contacta al administrador.</p>
+</section>
+{% endblock %}
